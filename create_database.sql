@@ -1,11 +1,13 @@
+USE master;
+GO
 -- DATA2201 – Relational Databases
 -- Group Project Phase 1: SKS National Bank
 -- File: create_database.sql
--- Submitted by: Dylan Retana (ID: 467710), Freddy Munini, Ime Iquoho
+-- Submitted by: Dylan Retana (ID: 467710), Freddy Munini (473383), Ime Iquoho (460765)
 -- Bow Valley College
--- Date: October 07, 2025
 
--- What this script does (short):
+-- What this script does: Creates the SKS_National_Bank database and defines all tables, primary and foreign keys,
+-- constraints, and relationships according to the ERD design.
 -- Creates the SKS_National_Bank database with all tables, keys, checks, and helpful indexes.
 
 ---------------------------------------------
@@ -13,7 +15,7 @@
 ---------------------------------------------
 IF DB_ID('SKS_National_Bank') IS NOT NULL
 BEGIN
-    ALTER DATABASE SKS_National_Bank SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    ALTER DATABASE SKS_National_Bank SET MULTI_USER WITH ROLLBACK IMMEDIATE;
     DROP DATABASE SKS_National_Bank;
 END;
 GO
@@ -77,7 +79,7 @@ CREATE TABLE dbo.Employee (
 
     CONSTRAINT FK_Employee_Manager
         FOREIGN KEY (ManagerID) REFERENCES dbo.Employee(EmployeeID)
-        ON DELETE SET NULL ON UPDATE NO ACTION
+        ON DELETE NO ACTION ON UPDATE NO ACTION
 );
 
 ---------------------------------------------
@@ -253,3 +255,86 @@ CREATE INDEX IX_LoanPayment_LoanID          ON dbo.LoanPayment(LoanID);
 CREATE INDEX IX_CAS_EmployeeID              ON dbo.CustomerAssignedStaff(EmployeeID);
 
 PRINT 'create_database.sql completed successfully.';
+
+--Test
+USE SKS_National_Bank;
+GO
+-- 1️) Show all tables
+SELECT TABLE_NAME 
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_TYPE = 'BASE TABLE'
+ORDER BY TABLE_NAME;
+
+-- 2️) Primary Keys
+SELECT 
+    tc.TABLE_NAME, 
+    kc.COLUMN_NAME, 
+    tc.CONSTRAINT_NAME
+FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc
+JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kc 
+    ON tc.CONSTRAINT_NAME = kc.CONSTRAINT_NAME
+WHERE tc.CONSTRAINT_TYPE = 'PRIMARY KEY'
+ORDER BY tc.TABLE_NAME;
+
+-- 3️) Foreign Keys
+SELECT 
+    f.name AS FK_Name,
+    OBJECT_NAME(f.parent_object_id) AS ChildTable,
+    COL_NAME(fc.parent_object_id, fc.parent_column_id) AS ChildColumn,
+    OBJECT_NAME(f.referenced_object_id) AS ParentTable,
+    COL_NAME(fc.referenced_object_id, fc.referenced_column_id) AS ParentColumn
+FROM sys.foreign_keys AS f
+INNER JOIN sys.foreign_key_columns AS fc 
+    ON f.object_id = fc.constraint_object_id
+ORDER BY ChildTable;
+
+-- 4️) Table Columns
+SELECT 
+    TABLE_NAME, COLUMN_NAME, DATA_TYPE, IS_NULLABLE, CHARACTER_MAXIMUM_LENGTH
+FROM INFORMATION_SCHEMA.COLUMNS
+ORDER BY TABLE_NAME, ORDINAL_POSITION;
+
+-- 5️) Constraints Overview
+SELECT 
+    TABLE_NAME, CONSTRAINT_TYPE, CONSTRAINT_NAME
+FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+ORDER BY TABLE_NAME;
+
+-- 6️) Relationships (Parent ↔ Child)
+SELECT 
+    fk.name AS ForeignKeyName,
+    tp.name AS ParentTable,
+    tr.name AS ReferencedTable
+FROM sys.foreign_keys fk
+JOIN sys.tables tp ON fk.parent_object_id = tp.object_id
+JOIN sys.tables tr ON fk.referenced_object_id = tr.object_id
+ORDER BY tp.name;
+
+-- 7️) Schema Check
+SELECT DISTINCT TABLE_SCHEMA 
+FROM INFORMATION_SCHEMA.TABLES;
+
+-- 8️) Indexes
+SELECT 
+    t.name AS TableName,
+    ind.name AS IndexName,
+    ind.type_desc AS IndexType
+FROM sys.indexes ind
+INNER JOIN sys.tables t ON ind.object_id = t.object_id
+WHERE ind.is_primary_key = 0 AND ind.is_unique_constraint = 0
+ORDER BY t.name;
+
+-- 9️) Default Constraints
+SELECT 
+    t.name AS TableName,
+    c.name AS ColumnName,
+    d.definition AS DefaultValue
+FROM sys.default_constraints d
+JOIN sys.columns c ON d.parent_column_id = c.column_id AND d.parent_object_id = c.object_id
+JOIN sys.tables t ON c.object_id = t.object_id
+ORDER BY t.name;
+
+-- 10) Row Count per Table
+EXEC sp_msforeachtable 'SELECT ''?'' AS TableName, COUNT(*) AS TotalRows FROM ?';
+
+GO

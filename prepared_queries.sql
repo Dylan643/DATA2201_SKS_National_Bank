@@ -1,11 +1,11 @@
 -- DATA2201 – Relational Databases
 -- Group Project Phase 1: SKS National Bank
--- File: prepared_queries.sql
--- Submitted by: Dylan Retana (ID: 467710), Freddy Munini, Ime Iquoho
+-- File: create_database.sql
+-- Submitted by: Dylan Retana (ID: 467710), Freddy Munini (473383), Ime Iquoho (460765)
 -- Bow Valley College
--- Date: October 07, 2025
 
--- What this script does (short):
+-- What this script does (short):Creates and tests 10 stored procedures for SKS_National_Bank,
+-- each performing analytical queries like balances, loans, and branch performance.
 -- Defines 10 stored procedures based on the case study, each with a test call.
 
 USE SKS_National_Bank;
@@ -16,9 +16,6 @@ IF OBJECT_ID('dbo.sp_CustomerTotalBalance') IS NOT NULL DROP PROC dbo.sp_Custome
 GO
 CREATE PROC dbo.sp_CustomerTotalBalance
 AS
-/*
-Purpose: Return each customer with total balance across all owned accounts.
-*/
 BEGIN
     SET NOCOUNT ON;
     SELECT
@@ -27,12 +24,12 @@ BEGIN
         SUM(a.Balance) AS TotalBalance
     FROM dbo.Customer c
     LEFT JOIN dbo.CustomerAccount ca ON ca.CustomerID = c.CustomerID
-    LEFT JOIN dbo.Account a          ON a.AccountID   = ca.AccountID
+    LEFT JOIN dbo.Account a ON a.AccountID = ca.AccountID
     GROUP BY c.CustomerID, c.FirstName, c.LastName
     ORDER BY TotalBalance DESC, CustomerName;
 END;
 GO
--- TEST
+--Test
 EXEC dbo.sp_CustomerTotalBalance;
 GO
 
@@ -41,9 +38,6 @@ IF OBJECT_ID('dbo.sp_TotalLoanAmountByBranch') IS NOT NULL DROP PROC dbo.sp_Tota
 GO
 CREATE PROC dbo.sp_TotalLoanAmountByBranch
 AS
-/*
-Purpose: Show total original loan amounts grouped by branch.
-*/
 BEGIN
     SET NOCOUNT ON;
     SELECT
@@ -55,7 +49,7 @@ BEGIN
     ORDER BY TotalLoanAmount DESC, b.BranchName;
 END;
 GO
--- TEST
+--Test
 EXEC dbo.sp_TotalLoanAmountByBranch;
 GO
 
@@ -64,9 +58,6 @@ IF OBJECT_ID('dbo.sp_JointAccounts') IS NOT NULL DROP PROC dbo.sp_JointAccounts;
 GO
 CREATE PROC dbo.sp_JointAccounts
 AS
-/*
-Purpose: List accounts that are jointly owned and their owners.
-*/
 BEGIN
     SET NOCOUNT ON;
     WITH owners AS (
@@ -78,16 +69,16 @@ BEGIN
     SELECT
         o.AccountID,
         a.AccountType,
-        STRING_AGG(c.FirstName + ' ' + c.LastName, ', ') WITHIN GROUP (ORDER BY c.LastName, c.FirstName) AS Owners
+        STRING_AGG(c.FirstName + ' ' + c.LastName, ', ') 
+            WITHIN GROUP (ORDER BY c.LastName, c.FirstName) AS Owners
     FROM owners o
     JOIN dbo.CustomerAccount ca ON ca.AccountID = o.AccountID
-    JOIN dbo.Customer c         ON c.CustomerID = ca.CustomerID
-    JOIN dbo.Account a          ON a.AccountID  = o.AccountID
+    JOIN dbo.Customer c ON c.CustomerID = ca.CustomerID
+    JOIN dbo.Account a ON a.AccountID = o.AccountID
     GROUP BY o.AccountID, a.AccountType
     ORDER BY o.AccountID;
 END;
 GO
--- TEST
 EXEC dbo.sp_JointAccounts;
 GO
 
@@ -97,9 +88,6 @@ GO
 CREATE PROC dbo.sp_OverdraftHistory
     @AccountID BIGINT
 AS
-/*
-Purpose: Show overdraft events (date, amount, check number) for a chequing account.
-*/
 BEGIN
     SET NOCOUNT ON;
     SELECT o.OverdraftDate, o.Amount, o.CheckNumber
@@ -109,8 +97,7 @@ BEGIN
     ORDER BY o.OverdraftDate DESC;
 END;
 GO
--- TEST (use one of the chequing account IDs from the data; Dylan_C for example)
-DECLARE @TestAcct BIGINT = (SELECT TOP 1 AccountID FROM dbo.Account WHERE AccountType='C' ORDER BY AccountID);
+DECLARE @TestAcct BIGINT = (SELECT TOP 1 AccountID FROM dbo.Account WHERE AccountType='C');
 EXEC dbo.sp_OverdraftHistory @AccountID=@TestAcct;
 GO
 
@@ -119,9 +106,6 @@ IF OBJECT_ID('dbo.sp_SavingsInterestPreview') IS NOT NULL DROP PROC dbo.sp_Savin
 GO
 CREATE PROC dbo.sp_SavingsInterestPreview
 AS
-/*
-Purpose: For savings accounts, compute projected one-year interest as Balance * (InterestRate/100).
-*/
 BEGIN
     SET NOCOUNT ON;
     SELECT
@@ -133,7 +117,7 @@ BEGIN
     WHERE a.AccountType='S';
 END;
 GO
--- TEST
+--Test
 EXEC dbo.sp_SavingsInterestPreview;
 GO
 
@@ -142,9 +126,6 @@ IF OBJECT_ID('dbo.sp_BranchPerformance') IS NOT NULL DROP PROC dbo.sp_BranchPerf
 GO
 CREATE PROC dbo.sp_BranchPerformance
 AS
-/*
-Purpose: Summarize branch totals of deposits (from Branch table) and loan amounts (from Loan table).
-*/
 BEGIN
     SET NOCOUNT ON;
     SELECT
@@ -157,7 +138,7 @@ BEGIN
     ORDER BY b.TotalDeposits DESC;
 END;
 GO
--- TEST
+--Test
 EXEC dbo.sp_BranchPerformance;
 GO
 
@@ -166,9 +147,6 @@ IF OBJECT_ID('dbo.sp_EmployeesMultiLocation') IS NOT NULL DROP PROC dbo.sp_Emplo
 GO
 CREATE PROC dbo.sp_EmployeesMultiLocation
 AS
-/*
-Purpose: List employees assigned to more than one location.
-*/
 BEGIN
     SET NOCOUNT ON;
     WITH counts AS (
@@ -187,19 +165,15 @@ BEGIN
     ORDER BY c.Cnt DESC, EmployeeName;
 END;
 GO
--- TEST
+--Test
 EXEC dbo.sp_EmployeesMultiLocation;
 GO
-
 /* 8) Loan payment schedule & running total for a loan */
 IF OBJECT_ID('dbo.sp_LoanPaymentsDetail') IS NOT NULL DROP PROC dbo.sp_LoanPaymentsDetail;
 GO
 CREATE PROC dbo.sp_LoanPaymentsDetail
     @LoanID BIGINT
 AS
-/*
-Purpose: Show the payment sequence and cumulative paid amount for a specific loan.
-*/
 BEGIN
     SET NOCOUNT ON;
     SELECT
@@ -207,14 +181,14 @@ BEGIN
         lp.PaymentNo,
         lp.PaymentDate,
         lp.PaymentAmount,
-        SUM(lp.PaymentAmount) OVER (PARTITION BY lp.LoanID ORDER BY lp.PaymentNo ROWS UNBOUNDED PRECEDING) AS CumulativePaid
+        SUM(lp.PaymentAmount) OVER (PARTITION BY lp.LoanID ORDER BY lp.PaymentNo) AS CumulativePaid
     FROM dbo.LoanPayment lp
     WHERE lp.LoanID = @LoanID
     ORDER BY lp.PaymentNo;
 END;
 GO
--- TEST
-DECLARE @TestLoan BIGINT = (SELECT TOP 1 LoanID FROM dbo.Loan ORDER BY LoanID);
+--Test
+DECLARE @TestLoan BIGINT = (SELECT TOP 1 LoanID FROM dbo.Loan);
 EXEC dbo.sp_LoanPaymentsDetail @LoanID=@TestLoan;
 GO
 
@@ -223,26 +197,22 @@ IF OBJECT_ID('dbo.sp_CustomersByStaff') IS NOT NULL DROP PROC dbo.sp_CustomersBy
 GO
 CREATE PROC dbo.sp_CustomersByStaff
     @EmployeeID INT,
-    @StaffRole  VARCHAR(20)  -- 'PersonalBanker' or 'LoanOfficer'
+    @StaffRole  VARCHAR(20)
 AS
-/*
-Purpose: Given an employee and role, list their assigned customers.
-*/
 BEGIN
     SET NOCOUNT ON;
     SELECT
         c.CustomerID,
         c.FirstName + ' ' + c.LastName AS CustomerName,
-        cas.AssignedSince
+        cas.StaffRole
     FROM dbo.CustomerAssignedStaff cas
     JOIN dbo.Customer c ON c.CustomerID = cas.CustomerID
     WHERE cas.EmployeeID = @EmployeeID
       AND cas.StaffRole  = @StaffRole
-    ORDER BY cas.AssignedSince DESC, CustomerName;
+    ORDER BY CustomerName;
 END;
 GO
--- TEST
-DECLARE @AnyPB INT = (SELECT TOP 1 EmployeeID FROM dbo.Employee WHERE Role='PersonalBanker' ORDER BY EmployeeID);
+DECLARE @AnyPB INT = (SELECT TOP 1 EmployeeID FROM dbo.Employee WHERE Role='PersonalBanker');
 EXEC dbo.sp_CustomersByStaff @EmployeeID=@AnyPB, @StaffRole='PersonalBanker';
 GO
 
@@ -252,9 +222,6 @@ GO
 CREATE PROC dbo.sp_TopBranchesByDeposits
     @TopN INT = 3
 AS
-/*
-Purpose: Return the top N branches ordered by TotalDeposits.
-*/
 BEGIN
     SET NOCOUNT ON;
     SELECT TOP (@TopN)
@@ -265,9 +232,45 @@ BEGIN
     ORDER BY b.TotalDeposits DESC, b.BranchName;
 END;
 GO
--- TEST
 EXEC dbo.sp_TopBranchesByDeposits @TopN = 2;
 GO
 
-PRINT 'prepared_queries.sql completed successfully.';
+PRINT 'prepared_queries.sql executed successfully.';
 GO
+
+
+--Testing the 10 stored procedures
+
+EXEC dbo.sp_CustomerTotalBalance;
+GO
+
+EXEC dbo.sp_TotalLoanAmountByBranch;
+GO
+
+EXEC dbo.sp_JointAccounts;
+GO
+
+DECLARE @TestAcct BIGINT = (SELECT TOP 1 AccountID FROM dbo.Account WHERE AccountType='C');
+EXEC dbo.sp_OverdraftHistory @AccountID=@TestAcct;
+GO
+
+EXEC dbo.sp_SavingsInterestPreview;
+GO
+
+EXEC dbo.sp_BranchPerformance;
+GO
+
+EXEC dbo.sp_EmployeesMultiLocation;
+GO
+
+DECLARE @TestLoan BIGINT = (SELECT TOP 1 LoanID FROM dbo.Loan);
+EXEC dbo.sp_LoanPaymentsDetail @LoanID=@TestLoan;
+GO
+
+DECLARE @AnyPB INT = (SELECT TOP 1 EmployeeID FROM dbo.Employee WHERE Role='PersonalBanker');
+EXEC dbo.sp_CustomersByStaff @EmployeeID=@AnyPB, @StaffRole='PersonalBanker';
+GO
+
+EXEC dbo.sp_TopBranchesByDeposits @TopN = 2;
+GO
+
