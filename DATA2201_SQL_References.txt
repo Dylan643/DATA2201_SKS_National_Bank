@@ -1,0 +1,54 @@
+DATA2201 – SKS National Bank
+References for SQL Functions and Features Used
+
+1. SQL Server CREATE TABLE, PRIMARY KEY, FOREIGN KEY
+Microsoft Learn. (n.d.). CREATE TABLE (Transact-SQL).
+https://learn.microsoft.com/en-us/sql/t-sql/statements/create-table-transact-sql 
+
+2. SQL Server CREATE LOGIN / CREATE USER
+Microsoft Learn. (n.d.). CREATE LOGIN (Transact-SQL).
+https://learn.microsoft.com/en-us/sql/t-sql/statements/create-login-transact-sql
+Microsoft Learn. (n.d.). CREATE USER (Transact-SQL).
+https://learn.microsoft.com/en-us/sql/t-sql/statements/create-user-transact-sql
+
+3. GRANT, DENY, REVOKE Permissions
+Microsoft Learn. (n.d.). GRANT (Transact-SQL).
+https://learn.microsoft.com/en-us/sql/t-sql/statements/grant-transact-sql
+Microsoft Learn. (n.d.). DENY (Transact-SQL).
+https://learn.microsoft.com/en-us/sql/t-sql/statements/deny-transact-sql
+
+4. SQL Server Triggers
+Microsoft Learn. (n.d.). CREATE TRIGGER (Transact-SQL).
+https://learn.microsoft.com/en-us/sql/t-sql/statements/create-trigger-transact-sql
+
+5. SQL Server JSON Functions
+Microsoft Learn. (n.d.). JSON Data (SQL Server).
+https://learn.microsoft.com/en-us/sql/relational-databases/json/json-data-sql-server
+Microsoft Learn. (n.d.). JSON_VALUE (Transact-SQL).
+https://learn.microsoft.com/en-us/sql/t-sql/functions/json-value-transact-sql
+Microsoft Learn. (n.d.). ISJSON (Transact-SQL).
+https://learn.microsoft.com/en-us/sql/t-sql/functions/isjson-transact-sql
+
+6. SQL Server Spatial Data (geography)
+Microsoft Learn. (n.d.). Spatial data types overview.
+https://learn.microsoft.com/en-us/sql/relational-databases/spatial/spatial-data-types-overview
+Microsoft Learn. (n.d.). geography data type.
+https://learn.microsoft.com/en-us/sql/t-sql/spatial-geography/spatial-types-geography?view=sql-server-ver17
+
+7. SQL Server INFORMATION_SCHEMA
+Microsoft Learn. (n.d.). INFORMATION_SCHEMA Views.
+https://learn.microsoft.com/en-us/sql/relational-databases/system-information-schema-views
+
+8. SQL Server BACKUP and RESTORE
+Microsoft Learn. (n.d.). BACKUP DATABASE (Transact-SQL).
+https://learn.microsoft.com/en-us/sql/relational-databases/backup-restore/create-a-full-database-backup-sql-server?view=sql-server-ver17
+Microsoft Learn. (n.d.). RESTORE DATABASE (Transact-SQL).
+https://learn.microsoft.com/en-us/sql/t-sql/statements/restore-statements-transact-sql?view=sql-server-ver17
+
+9. SQL Server sp_rename
+Microsoft Learn. (n.d.). sp_rename (Transact-SQL).
+https://learn.microsoft.com/en-us/sql/relational-databases/system-stored-procedures/sp-rename-transact-sql
+
+10. SQL Server Management Studio (SSMS)
+Microsoft Learn. (n.d.). SQL Server Management Studio (SSMS).
+https://learn.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms
